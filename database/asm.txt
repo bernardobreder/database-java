@@ -1,0 +1,116 @@
+SELECT * FROM a
+    open a
+A:  fetch 
+    jmpnull B
+    send
+    jmp A
+B:  close
+
+SELECT a.a, a.c FROM a
+    open a
+A:  fetch 
+    jmpnull B
+    row 2
+    row 0
+    join 2
+    send
+    jmp A
+B:  close 
+
+SELECT * FROM a, b
+    open a
+D:  fetch 
+    jumpnull A
+    open b
+C:  fetch 
+    jumpnull B
+    join 2
+    send
+    jmp C
+B:  close
+    jmp D
+A:  close
+
+SELECT name FROM a WHERE id = 10
+    open a
+A:  fetch
+    jumpnull B
+    row 0
+    loadl 10
+    equall
+    jmp.false A
+    row 1
+    send
+    jmp A
+B:  close
+
+SELECT firstname, lastname FROM a WHERE id = 10
+    open a
+A:  fetch
+    jumpnull B
+    row 0
+    loadl 10
+    equall
+    jmp.false A
+    row 1
+    row 2
+    join 2
+    send
+    jmp A
+B:  close
+
+SELECT name FROM a WHERE id = 10 and name like 'B%'
+    open a
+A:  fetch
+    jumpnull B
+    row 0
+    loadl 10
+    equall
+    row 1
+    loads 'B%'
+    like
+    and
+    jmp.false A
+    row 1
+    send
+    jmp A
+B:  close
+
+SELECT name FROM a WHERE id = 10
+    table.find a 10
+    
+SELECT a.id, b.name FROM a, b WHERE a.id = 10 and a.fk = b.id
+    table.find a 10
+    row 1
+    table.finds b
+    row 1 0
+    row 0 1
+
+SELECT a.id, b.name FROM a, b WHERE (a.id = 10 or a.id = 20) and b.id = a.fk
+    table.find a 10
+    row 1
+    table.finds b
+    row 1 0
+    row 0 1
+    send
+    table.find a 20
+    row 1
+    table.finds b
+    row 1 0
+    row 0 1
+    send
+    
+SELECT a.id, b.name FROM a, b WHERE a.id = 10 or a.fk = b.id
+    table.find a 10
+    row 1
+    table.finds b
+    row 1 0
+    row 0 1
+    send
+
+1. A tabela resultante do FROM deve ser filtrado com as chaves primário ou única.
+1.1. Quando se tem tabelas, a condição gera um grafo que determina as chaves das tabelas
+
+2. A tabela resultante do FROM deve filtrar o range da condição
+
+3. A tabela resultante do FROM deve ser iterado até terminar
